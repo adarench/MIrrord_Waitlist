@@ -1,5 +1,10 @@
 // Register GSAP plugins (loaded via CDN)
-gsap.registerPlugin(TextPlugin, ScrollTrigger, ScrollToPlugin);
+// Note: Plugins are also registered in index.html to ensure they're available immediately
+try {
+    gsap.registerPlugin(TextPlugin, ScrollTrigger, ScrollToPlugin);
+} catch (e) {
+    console.error("Error registering GSAP plugins:", e);
+}
 
 // Function to update the waitlist counter with animation
 function updateWaitlistCounter() {
@@ -443,58 +448,93 @@ function initFeatureCards() {
     
     if (!featureCards.length) return;
     
-    // Create a GSAP timeline for feature cards
-    const cardTimeline = gsap.timeline({
-        scrollTrigger: {
-            trigger: '#features',
-            start: 'top 70%'
-        }
-    });
-    
-    // Add staggered animations to cards
-    cardTimeline.from(featureCards, {
-        y: 30,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: 'power3.out'
-    });
-    
-    // Create a GSAP timeline for features detail section
-    if (featuresDetail) {
-        const detailTimeline = gsap.timeline({
-            scrollTrigger: {
-                trigger: '.features-detail',
-                start: 'top 80%'
+    try {
+        // Check if ScrollTrigger is available
+        if (typeof ScrollTrigger === 'undefined' || typeof gsap.timeline !== 'function') {
+            // Fallback for when ScrollTrigger isn't properly loaded
+            console.warn("ScrollTrigger not available, using simplified animations");
+            
+            // Simple animation without ScrollTrigger
+            gsap.to(featureCards, {
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                stagger: 0.15,
+                ease: 'power3.out'
+            });
+            
+            if (featuresDetail) {
+                gsap.to(['.features-device-mockup', '.features-text h3', '.features-text p', '.features-list li'], {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.8,
+                    stagger: 0.1,
+                    ease: 'power3.out'
+                });
             }
-        });
-        
-        detailTimeline
-            .from('.features-device-mockup', {
-                y: 40,
+        } else {
+            // Create a GSAP timeline for feature cards with ScrollTrigger
+            const cardTimeline = gsap.timeline({
+                scrollTrigger: {
+                    trigger: '#features',
+                    start: 'top 70%'
+                }
+            });
+            
+            // Add staggered animations to cards
+            cardTimeline.from(featureCards, {
+                y: 30,
                 opacity: 0,
-                duration: 1,
+                duration: 0.8,
+                stagger: 0.15,
                 ease: 'power3.out'
-            })
-            .from('.features-text h3', {
-                y: 20,
-                opacity: 0,
-                duration: 0.6,
-                ease: 'power3.out'
-            }, '-=0.4')
-            .from('.features-text p', {
-                y: 20,
-                opacity: 0,
-                duration: 0.6,
-                ease: 'power3.out'
-            }, '-=0.3')
-            .from('.features-list li', {
-                y: 15,
-                opacity: 0,
-                duration: 0.5,
-                stagger: 0.1,
-                ease: 'power3.out'
-            }, '-=0.2');
+            });
+            
+            // Create a GSAP timeline for features detail section
+            if (featuresDetail) {
+                const detailTimeline = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: '.features-detail',
+                        start: 'top 80%'
+                    }
+                });
+                
+                detailTimeline
+                    .from('.features-device-mockup', {
+                        y: 40,
+                        opacity: 0,
+                        duration: 1,
+                        ease: 'power3.out'
+                    })
+                    .from('.features-text h3', {
+                        y: 20,
+                        opacity: 0,
+                        duration: 0.6,
+                        ease: 'power3.out'
+                    }, '-=0.4')
+                    .from('.features-text p', {
+                        y: 20,
+                        opacity: 0,
+                        duration: 0.6,
+                        ease: 'power3.out'
+                    }, '-=0.3')
+                    .from('.features-list li', {
+                        y: 15,
+                        opacity: 0,
+                        duration: 0.5,
+                        stagger: 0.1,
+                        ease: 'power3.out'
+                    }, '-=0.2');
+            }
+        }
+    } catch (e) {
+        console.error("Error initializing feature card animations:", e);
+        // Make sure elements are visible even if animations fail
+        gsap.set(featureCards, { opacity: 1, y: 0 });
+        if (featuresDetail) {
+            gsap.set(['.features-device-mockup', '.features-text h3', '.features-text p', '.features-list li'], 
+                { opacity: 1, y: 0 });
+        }
     }
     
     // Animate device mockup trades
@@ -546,63 +586,86 @@ function initAboutSection() {
     
     if (!missionContent) return;
     
-    // Create a timeline for the mission section
-    const missionTimeline = gsap.timeline({
-        scrollTrigger: {
-            trigger: '#about',
-            start: 'top 60%'
-        }
-    });
-    
-    // Animate mission content elements
-    missionTimeline
-        .from('#about h2', {
-            y: 40,
-            opacity: 0,
-            duration: 0.8,
-            ease: 'power2.out'
-        })
-        .from('.mission-text', {
-            y: 30,
-            opacity: 0,
-            duration: 0.8,
-            ease: 'power2.out'
-        }, '-=0.5')
-        .from('.cta-container', {
-            y: 20,
-            opacity: 0,
-            duration: 0.7,
-            ease: 'power2.out'
-        }, '-=0.5')
-        .from(socialLinks, {
-            y: 20,
-            opacity: 0,
-            stagger: 0.1,
-            duration: 0.4,
-            ease: 'power2.out'
-        }, '-=0.4')
-        .from(waitlistCounter, {
-            scale: 0.9,
-            opacity: 0,
-            duration: 0.6,
-            ease: 'back.out(1.4)'
-        }, '-=0.2');
-    
-    // Add animation for the counter container (but not the number itself, which is handled by updateWaitlistCounter)
-    if (waitlistCounter) {
-        const counterTimeline = gsap.timeline({
-            scrollTrigger: {
-                trigger: waitlistCounter,
-                start: 'top 80%'
+    try {
+        // Check if ScrollTrigger is available
+        if (typeof ScrollTrigger === 'undefined' || typeof gsap.timeline !== 'function') {
+            // Fallback for when ScrollTrigger isn't properly loaded
+            console.warn("ScrollTrigger not available for about section, using simplified animations");
+            
+            // Simple animations without ScrollTrigger
+            gsap.to('#about h2', { opacity: 1, y: 0, duration: 0.8 });
+            gsap.to('.mission-text', { opacity: 1, y: 0, duration: 0.8, delay: 0.2 });
+            gsap.to('.cta-container', { opacity: 1, y: 0, duration: 0.7, delay: 0.4 });
+            gsap.to(socialLinks, { opacity: 1, y: 0, duration: 0.4, delay: 0.6, stagger: 0.1 });
+            
+            if (waitlistCounter) {
+                gsap.to(waitlistCounter, { opacity: 1, scale: 1, duration: 0.6, delay: 0.8 });
             }
-        });
-        
-        counterTimeline.from(waitlistCounter, {
-            scale: 0.9,
-            opacity: 0,
-            duration: 0.8,
-            ease: 'back.out(1.4)'
-        });
+        } else {
+            // Create a timeline for the mission section with ScrollTrigger
+            const missionTimeline = gsap.timeline({
+                scrollTrigger: {
+                    trigger: '#about',
+                    start: 'top 60%'
+                }
+            });
+            
+            // Animate mission content elements
+            missionTimeline
+                .from('#about h2', {
+                    y: 40,
+                    opacity: 0,
+                    duration: 0.8,
+                    ease: 'power2.out'
+                })
+                .from('.mission-text', {
+                    y: 30,
+                    opacity: 0,
+                    duration: 0.8,
+                    ease: 'power2.out'
+                }, '-=0.5')
+                .from('.cta-container', {
+                    y: 20,
+                    opacity: 0,
+                    duration: 0.7,
+                    ease: 'power2.out'
+                }, '-=0.5')
+                .from(socialLinks, {
+                    y: 20,
+                    opacity: 0,
+                    stagger: 0.1,
+                    duration: 0.4,
+                    ease: 'power2.out'
+                }, '-=0.4')
+                .from(waitlistCounter, {
+                    scale: 0.9,
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: 'back.out(1.4)'
+                }, '-=0.2');
+            
+            // Add animation for the counter container (but not the number itself, which is handled by updateWaitlistCounter)
+            if (waitlistCounter) {
+                const counterTimeline = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: waitlistCounter,
+                        start: 'top 80%'
+                    }
+                });
+                
+                counterTimeline.from(waitlistCounter, {
+                    scale: 0.9,
+                    opacity: 0,
+                    duration: 0.8,
+                    ease: 'back.out(1.4)'
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Error initializing about section animations:", e);
+        // Make sure elements are visible even if animations fail
+        gsap.set(['#about h2', '.mission-text', '.cta-container', socialLinks, waitlistCounter], 
+            { opacity: 1, y: 0, scale: 1 });
     }
     
     // Add mesh background animation
@@ -651,17 +714,39 @@ function initAboutSection() {
 function initFooter() {
     const footer = document.querySelector('footer');
     
-    if (footer) {
-        gsap.from(footer.querySelectorAll('.footer-content > *'), {
-            y: 20,
-            opacity: 0,
-            duration: 0.6,
-            stagger: 0.1,
-            scrollTrigger: {
-                trigger: footer,
-                start: 'top 90%'
-            }
-        });
+    if (!footer) return;
+    
+    try {
+        // Check if ScrollTrigger is available
+        if (typeof ScrollTrigger === 'undefined' || typeof gsap.timeline !== 'function') {
+            // Fallback for when ScrollTrigger isn't properly loaded
+            console.warn("ScrollTrigger not available for footer, using simplified animations");
+            
+            // Simple animations without ScrollTrigger
+            gsap.to(footer.querySelectorAll('.footer-content > *'), { 
+                opacity: 1, 
+                y: 0, 
+                duration: 0.6, 
+                stagger: 0.1, 
+                delay: 0.2 
+            });
+        } else {
+            // Scroll-based animation
+            gsap.from(footer.querySelectorAll('.footer-content > *'), {
+                y: 20,
+                opacity: 0,
+                duration: 0.6,
+                stagger: 0.1,
+                scrollTrigger: {
+                    trigger: footer,
+                    start: 'top 90%'
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Error initializing footer animations:", e);
+        // Make sure elements are visible even if animations fail
+        gsap.set(footer.querySelectorAll('.footer-content > *'), { opacity: 1, y: 0 });
     }
 }
 

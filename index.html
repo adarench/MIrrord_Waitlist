@@ -340,6 +340,35 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+    <script>
+        // Ensure GSAP plugins are registered immediately
+        try {
+            gsap.registerPlugin(TextPlugin, ScrollTrigger, ScrollToPlugin);
+        } catch (e) {
+            console.error("Failed to register GSAP plugins:", e);
+        }
+        
+        // Add fallback CSS in case animations fail to run
+        document.head.insertAdjacentHTML('beforeend', `
+            <style>
+                /* Fallback styles to ensure content is visible if animations fail */
+                .feature-card, .features-device-mockup, .features-text h3, 
+                .features-text p, .features-list li, #about h2, 
+                .mission-text, .cta-container, .social-link, 
+                .waitlist-counter, .footer-content > * {
+                    opacity: 1 !important;
+                    transform: translateY(0) !important;
+                    visibility: visible !important;
+                }
+                
+                /* Ensure scroll animations don't hide content initially */
+                [data-gsap-animated] {
+                    opacity: 1;
+                    transform: none;
+                }
+            </style>
+        `);
+    </script>
     <script src="./index.js"></script>
 </body>
 </html>
