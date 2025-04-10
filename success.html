@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success - Mirrord Waitlist</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .success-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: var(--spacing-8);
+            background-color: var(--gray-950);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .success-card {
+            background-color: var(--gray-800);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-8);
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid var(--gray-700);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            z-index: 1;
+            position: relative;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .success-icon {
+            font-size: 64px;
+            color: var(--success-500);
+            margin-bottom: var(--spacing-6);
+        }
+        
+        .success-card h1 {
+            margin-bottom: var(--spacing-4);
+            background: linear-gradient(90deg, var(--success-500), var(--primary-500));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .success-card p {
+            margin-bottom: var(--spacing-6);
+            color: var(--text-secondary);
+        }
+        
+        .back-home {
+            margin-top: var(--spacing-4);
+        }
+        
+        .counter {
+            margin-top: var(--spacing-6);
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .count-number {
+            color: var(--primary-500);
+            font-weight: bold;
+        }
+        
+        .bg-glow {
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 70%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, rgba(10, 10, 10, 0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes countUp {
+            from {
+                content: "0";
+            }
+            to {
+                content: attr(data-count);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-card">
+            <div class="success-icon">✓</div>
+            <h1>You're on the List!</h1>
+            <p>Thanks for joining the Mirrord waitlist. We'll be in touch soon with early access details.</p>
+            <p>Check your inbox for a confirmation email.</p>
+            
+            <div class="counter">
+                You're joining <span class="count-number" id="waitlistCount">2,439</span> traders on our waitlist.
+            </div>
+            
+            <div class="back-home">
+                <a href="./index.html" class="btn btn-primary">Back to Home</a>
+            </div>
+        </div>
+        
+        <div class="bg-glow"></div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get waitlist users from localStorage (for demo purposes)
+            const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
+            const baseCount = 2438;
+            const totalCount = baseCount + waitlistUsers.length;
+            
+            // Update count display
+            document.getElementById('waitlistCount').textContent = totalCount.toLocaleString();
+            
+            // Auto redirect after 5 seconds
+            setTimeout(() => {
+                window.location.href = './index.html';
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

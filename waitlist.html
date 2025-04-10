@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Mirrord Waitlist</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .waitlist-form-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: var(--spacing-8);
+            background-color: var(--gray-950);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .waitlist-form {
+            background-color: var(--gray-800);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-8);
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid var(--gray-700);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            z-index: 1;
+            position: relative;
+        }
+        
+        .waitlist-form h1 {
+            margin-bottom: var(--spacing-6);
+            text-align: center;
+            background: linear-gradient(90deg, var(--primary-500), var(--accent-500));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .waitlist-form p {
+            margin-bottom: var(--spacing-6);
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: var(--spacing-6);
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-2);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: var(--spacing-3);
+            background-color: var(--gray-700);
+            border: 1px solid var(--gray-600);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        }
+        
+        .form-check {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-6);
+        }
+        
+        .form-check input {
+            margin-right: var(--spacing-2);
+            margin-top: 3px;
+        }
+        
+        .form-check label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: var(--spacing-4);
+            background-color: var(--primary-500);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .submit-btn:hover {
+            background-color: var(--primary-600);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+        
+        .form-footer {
+            margin-top: var(--spacing-6);
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .form-footer a {
+            color: var(--primary-500);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        .form-footer a:hover {
+            color: var(--primary-600);
+            text-decoration: underline;
+        }
+        
+        .bg-glow {
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 70%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(33, 150, 243, 0.1) 0%, rgba(10, 10, 10, 0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .success-message {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .success-message h2 {
+            margin-bottom: var(--spacing-4);
+            color: var(--success-500);
+        }
+        
+        .success-message p {
+            margin-bottom: var(--spacing-6);
+        }
+        
+        .success-message .icon {
+            font-size: 64px;
+            color: var(--success-500);
+            margin-bottom: var(--spacing-6);
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="waitlist-form-container">
+        <div class="waitlist-form" id="waitlistForm">
+            <h1>Join the Mirrord Waitlist</h1>
+            <p>Be the first to know when we launch. Early access is limited.</p>
+            
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="platform">Preferred Trading Platform</label>
+                    <input type="text" id="platform" name="platform" placeholder="E.g., Robinhood, TD Ameritrade, etc.">
+                </div>
+                
+                <div class="form-check">
+                    <input type="checkbox" id="updates" name="updates" checked>
+                    <label for="updates">I'd like to receive updates about Mirrord's launch and features.</label>
+                </div>
+                
+                <button type="submit" class="submit-btn">Join Waitlist</button>
+                
+                <div class="form-footer">
+                    <p>Already on the waitlist? <a href="./index.html">Back to home</a></p>
+                </div>
+            </form>
+        </div>
+        
+        <div class="waitlist-form success-message" id="successMessage">
+            <div class="icon">✓</div>
+            <h2>You're on the List!</h2>
+            <p>Thanks for joining the Mirrord waitlist. We'll be in touch soon with early access details.</p>
+            <p>Check your inbox for a confirmation email.</p>
+            <a href="./index.html" class="btn btn-primary">Back to Home</a>
+        </div>
+        
+        <div class="bg-glow"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('signupForm');
+            const waitlistForm = document.getElementById('waitlistForm');
+            const successMessage = document.getElementById('successMessage');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = new FormData(form);
+                const userData = {
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    platform: formData.get('platform'),
+                    updates: formData.get('updates') === 'on'
+                };
+                
+                // In a real implementation, you'd send this data to your server
+                // For now, we'll simulate a successful submission
+                console.log('User data:', userData);
+                
+                // Store in localStorage (for demo purposes)
+                const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
+                waitlistUsers.push(userData);
+                localStorage.setItem('waitlistUsers', JSON.stringify(waitlistUsers));
+                
+                // Redirect to success page
+                window.location.href = './success.html';
+            });
+        });
+    </script>
+</body>
+</html>
