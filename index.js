@@ -16,7 +16,10 @@ function updateWaitlistCounter() {
         if (typeof firebase !== 'undefined' && firebase.firestore) {
             try {
                 const db = firebase.firestore();
-                db.collection("waitlist").get().then(snapshot => {
+                // Use a cache-busting timestamp query parameter to ensure fresh data
+                db.collection("waitlist")
+                  .get({ source: "server" }) // Force server fetch, bypass cache
+                  .then(snapshot => {
                     // Log all documents in the collection for debugging
                     console.log("All documents in waitlist collection:");
                     snapshot.forEach(doc => {

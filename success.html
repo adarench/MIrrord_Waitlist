@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Success - Mirrord Waitlist</title>
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -111,7 +114,11 @@
             </div>
             
             <div class="back-home">
-                <a href="./index.html" class="btn btn-primary">Back to Home</a>
+                <a href="#" id="backHomeLink" class="btn btn-primary">Back to Home</a>
+                <script>
+                    // Add cache-busting timestamp to home link
+                    document.getElementById('backHomeLink').href = `./index.html?t=${new Date().getTime()}`;
+                </script>
             </div>
         </div>
         
@@ -134,7 +141,17 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+        
+        // Disable Firestore caching
         const db = firebase.firestore();
+        db.settings({
+            cacheSizeBytes: 0,  // Set cache size to 0
+            ignoreUndefinedProperties: true
+        });
+        
+        // Add a timestamp parameter to force cache refresh
+        const cacheTime = new Date().getTime();
+        console.log('Cache busting timestamp:', cacheTime);
         
         document.addEventListener('DOMContentLoaded', function() {
             // Get counter element first
@@ -156,7 +173,8 @@
             // Try to get accurate count from Firebase
             async function getAccurateCount() {
                 try {
-                    const snapshot = await db.collection("waitlist").get();
+                    // Force server fetch, bypass cache
+                    const snapshot = await db.collection("waitlist").get({ source: "server" });
                     
                     // Log all documents in the collection for debugging
                     console.log("All documents in waitlist collection:");

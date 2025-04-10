@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Mirrord - Copy Trading Built for Real Trust</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -356,6 +359,16 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+        
+        // Disable Firestore caching
+        firebase.firestore().settings({
+            cacheSizeBytes: 0,  // Set cache size to 0
+            ignoreUndefinedProperties: true
+        });
+        
+        // Add a timestamp parameter to force cache refresh
+        const cacheTime = new Date().getTime();
+        console.log('Cache busting timestamp:', cacheTime);
     </script>
     <script>
         // Ensure GSAP plugins are registered immediately
