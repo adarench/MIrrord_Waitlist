@@ -1,11 +1,30 @@
-// Import GSAP and plugins for animations
-import { gsap } from 'gsap';
-import { TextPlugin } from 'gsap/TextPlugin';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
-
-// Register plugins
+// Register GSAP plugins (loaded via CDN)
 gsap.registerPlugin(TextPlugin, ScrollTrigger, ScrollToPlugin);
+
+// Function to update the waitlist counter with animation
+function updateWaitlistCounter() {
+    const counterElement = document.getElementById('waitlistCounter');
+    if (!counterElement) return;
+    
+    // Get waitlist users from localStorage for the counter
+    const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
+    // Show the actual count (0) rather than a fake number
+    const totalCount = waitlistUsers.length;
+    
+    // Create count-up animation
+    let currentCount = totalCount > 20 ? totalCount - 20 : 0;
+    
+    counterElement.textContent = currentCount.toLocaleString();
+    
+    const countInterval = setInterval(() => {
+        currentCount++;
+        counterElement.textContent = currentCount.toLocaleString();
+        
+        if (currentCount >= totalCount) {
+            clearInterval(countInterval);
+        }
+    }, 50);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     initHeroAnimation();
@@ -16,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initPortfolioDemo();
     initFeatureCards();
     initAboutSection();
+    updateWaitlistCounter();
 });
 
 function initHeroAnimation() {
@@ -153,14 +173,22 @@ function addTypewriterEffect() {
 
 // Initialize trader selection in demo section
 function initTraderSelection() {
+    console.log('Initializing trader selection');
     const traderCards = document.querySelectorAll('.trader-card');
     const followButtons = document.querySelectorAll('.trader-follow-btn');
     
-    if (!traderCards.length) return;
+    console.log('Found trader cards:', traderCards.length);
+    
+    if (!traderCards.length) {
+        console.error('No trader cards found');
+        return;
+    }
     
     // Handle trader card selection
     traderCards.forEach(card => {
+        console.log('Trader card found:', card.dataset.trader);
         card.addEventListener('click', () => {
+            console.log('Trader card clicked:', card.dataset.trader);
             // Remove active class from all cards
             traderCards.forEach(c => c.classList.remove('active'));
             
@@ -168,13 +196,19 @@ function initTraderSelection() {
             card.classList.add('active');
             
             // Update trade feed to show selected trader's trades
-            updateTradeFeed(card.dataset.trader);
+            if (typeof window.updateTradeFeed === 'function') {
+                console.log('Calling updateTradeFeed with:', card.dataset.trader);
+                window.updateTradeFeed(card.dataset.trader);
+            } else {
+                console.error('updateTradeFeed function not available');
+            }
         });
     });
     
     // Handle follow button clicks
     followButtons.forEach(button => {
         button.addEventListener('click', (e) => {
+            console.log('Follow button clicked');
             e.stopPropagation(); // Prevent triggering card click
             
             const isFollowing = button.classList.contains('following');
@@ -230,7 +264,14 @@ function initTradeFeed() {
     
     // Function to update trade feed with selected trader's trades
     window.updateTradeFeed = function(trader) {
-        if (!tradeData[trader]) return;
+        console.log('updateTradeFeed called with trader:', trader);
+        console.log('tradeData available:', Object.keys(tradeData));
+        console.log('tradeFeedContainer exists:', !!tradeFeedContainer);
+        
+        if (!tradeData[trader]) {
+            console.error('No trade data found for trader:', trader);
+            return;
+        }
         
         // Clear existing trades
         tradeFeedContainer.innerHTML = '';
@@ -258,6 +299,8 @@ function initTradeFeed() {
             
             tradeFeedContainer.appendChild(tradeItem);
         });
+        
+        console.log('Trade items added:', tradeFeedContainer.children.length);
         
         // Add mirror button functionality
         document.querySelectorAll('.mirror-btn').forEach(btn => {
@@ -545,12 +588,8 @@ function initAboutSection() {
             ease: 'back.out(1.4)'
         }, '-=0.2');
     
-    // Animate counter if it exists
-    if (counterNumber) {
-        // Get the target number from the HTML
-        const targetNumber = parseInt(counterNumber.textContent.replace(/,/g, ''), 10);
-        
-        // Create counter animation
+    // Add animation for the counter container (but not the number itself, which is handled by updateWaitlistCounter)
+    if (waitlistCounter) {
         const counterTimeline = gsap.timeline({
             scrollTrigger: {
                 trigger: waitlistCounter,
@@ -558,15 +597,11 @@ function initAboutSection() {
             }
         });
         
-        counterTimeline.from(counterNumber, {
-            textContent: 0,
-            duration: 2,
-            ease: 'power2.out',
-            snap: { textContent: 1 },
-            stagger: 0.5,
-            onUpdate: function() {
-                counterNumber.textContent = Math.round(this.targets()[0].textContent).toLocaleString();
-            }
+        counterTimeline.from(waitlistCounter, {
+            scale: 0.9,
+            opacity: 0,
+            duration: 0.8,
+            ease: 'back.out(1.4)'
         });
     }
     
