@@ -217,35 +217,75 @@
         <div class="bg-glow"></div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script>
+        // Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyBG4AM8qs0LhDP5AMxSHtaNjd-BOKTG9aM",
+          authDomain: "mirrordwaitlist.firebaseapp.com",
+          projectId: "mirrordwaitlist",
+          storageBucket: "mirrordwaitlist.firebasestorage.app",
+          messagingSenderId: "84273478294",
+          appId: "1:84273478294:web:731df65e9f48ecbc3660b7",
+          measurementId: "G-HJMRHDCVV6"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Function to add user to waitlist
+        async function addToWaitlist(userData) {
+          try {
+            const docRef = await db.collection("waitlist").add({
+              ...userData,
+              timestamp: new Date()
+            });
+            return { success: true, id: docRef.id };
+          } catch (error) {
+            console.error("Error adding document:", error);
+            return { success: false, error };
+          }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('signupForm');
-            const waitlistForm = document.getElementById('waitlistForm');
-            const successMessage = document.getElementById('successMessage');
+            const submitButton = document.querySelector('.submit-btn');
             
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', async function(e) {
                 e.preventDefault();
+                
+                // Disable the submit button to prevent multiple submissions
+                submitButton.disabled = true;
+                submitButton.textContent = 'Processing...';
                 
                 // Get form data
                 const formData = new FormData(form);
                 const userData = {
                     name: formData.get('name'),
-                    email: formData.get('email'),
+                    email: formData.get('email').toLowerCase().trim(),
                     platform: formData.get('platform'),
-                    updates: formData.get('updates') === 'on'
+                    updates: formData.get('updates') === 'on',
+                    source: document.referrer || 'direct'
                 };
                 
-                // In a real implementation, you'd send this data to your server
-                // For now, we'll simulate a successful submission
-                console.log('User data:', userData);
-                
-                // Store in localStorage (for demo purposes)
-                const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
-                waitlistUsers.push(userData);
-                localStorage.setItem('waitlistUsers', JSON.stringify(waitlistUsers));
-                
-                // Redirect to success page
-                window.location.href = './success.html';
+                try {
+                    // Add to Firebase
+                    await addToWaitlist(userData);
+                    
+                    // Also store locally for our counter on success page
+                    const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
+                    waitlistUsers.push(userData);
+                    localStorage.setItem('waitlistUsers', JSON.stringify(waitlistUsers));
+                    
+                    // Go to success page
+                    window.location.href = './success.html';
+                } catch (error) {
+                    alert('There was an error submitting your information. Please try again.');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Join Waitlist';
+                }
             });
         });
     </script>

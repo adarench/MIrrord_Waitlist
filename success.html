@@ -107,7 +107,7 @@
             <p>Check your inbox for a confirmation email.</p>
             
             <div class="counter">
-                You're joining <span class="count-number" id="waitlistCount">2,439</span> traders on our waitlist.
+                You're joining <span class="count-number" id="waitlistCount">0</span> traders on our waitlist.
             </div>
             
             <div class="back-home">
@@ -120,13 +120,27 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Get waitlist users from localStorage (for demo purposes)
+            // Get waitlist users from localStorage for the counter
             const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
-            const baseCount = 2438;
-            const totalCount = baseCount + waitlistUsers.length;
+            // Show the actual count (0) rather than a fake number
+            const totalCount = waitlistUsers.length;
             
-            // Update count display
-            document.getElementById('waitlistCount').textContent = totalCount.toLocaleString();
+            // Get counter element
+            const countElement = document.getElementById('waitlistCount');
+            
+            // Create count-up animation
+            let currentCount = totalCount > 20 ? totalCount - 20 : 0;
+            
+            countElement.textContent = currentCount.toLocaleString();
+            
+            const countInterval = setInterval(() => {
+                currentCount++;
+                countElement.textContent = currentCount.toLocaleString();
+                
+                if (currentCount >= totalCount) {
+                    clearInterval(countInterval);
+                }
+            }, 50);
             
             // Auto redirect after 5 seconds
             setTimeout(() => {
