@@ -252,8 +252,8 @@
         // Initialize EmailJS with your User ID
         // You'll need to sign up at https://www.emailjs.com/ and replace this with your actual User ID
         (function() {
-            // Replace 'YOUR_USER_ID' with your actual EmailJS user ID
-            emailjs.init('YOUR_USER_ID');
+            // Initialize with the public key
+            emailjs.init('8yXpZG6iY5X07YGxP');
         })();
         
         // Function to add user to waitlist
@@ -323,12 +323,12 @@
                             const templateParams = {
                                 to_name: userData.name,
                                 to_email: userData.email,
-                                message: `Thanks for joining the Mirrord waitlist! We'll notify you when early access is available.`
+                                message: `Thanks for joining the Mirrord waitlist. We'll notify you when early access is available.`
                             };
                             
                             // Send the email using EmailJS
-                            // Replace 'YOUR_SERVICE_ID' and 'YOUR_TEMPLATE_ID' with your actual values from EmailJS
-                            emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
+                            // Send email using the provided service and template IDs
+                            emailjs.send('service_uwps2rt', 'template_3hrpfwf', templateParams)
                                 .then(function(response) {
                                     console.log('Email sent successfully:', response);
                                 }, function(error) {
