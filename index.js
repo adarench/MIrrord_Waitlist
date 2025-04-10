@@ -88,9 +88,16 @@ function updateWaitlistCounter() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Clear localStorage on page load to ensure we always get a fresh count
+    // Clear ALL localStorage related to waitlist to ensure we always get a fresh count
     localStorage.removeItem('waitlistCount');
-    console.log('Cleared localStorage waitlist count');
+    localStorage.removeItem('waitlistUsers');
+    console.log('Cleared ALL localStorage waitlist data');
+    
+    // Set an initial counter value of 0 to override any cached content
+    const counterElement = document.getElementById('waitlistCounter');
+    if (counterElement) {
+        counterElement.textContent = '0';
+    }
     
     initHeroAnimation();
     initDecorationAnimation();

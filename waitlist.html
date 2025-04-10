@@ -240,6 +240,17 @@
           try {
             console.log("Adding to waitlist:", userData);
             
+            // First check if the email already exists to prevent duplicates
+            const emailQuery = await db.collection("waitlist")
+              .where("email", "==", userData.email)
+              .get();
+            
+            // If email already exists, return success but note it's a duplicate
+            if (!emailQuery.empty) {
+              console.log("Email already exists in database:", userData.email);
+              return { success: true, id: emailQuery.docs[0].id, duplicate: true };
+            }
+            
             // Add timestamp to the data
             const dataWithTimestamp = {
               ...userData,
@@ -285,10 +296,12 @@
                     if (result.success) {
                         console.log("Successfully added to waitlist with ID: ", result.id);
                         
-                        // Also store locally for our counter on success page
-                        const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
-                        waitlistUsers.push(userData);
-                        localStorage.setItem('waitlistUsers', JSON.stringify(waitlistUsers));
+                        // Store only the current user in localStorage
+                        const singleUserArray = [userData];
+                        localStorage.setItem('waitlistUsers', JSON.stringify(singleUserArray));
+                        
+                        // Also store the actual count (should be 1 for a single user)
+                        localStorage.setItem('waitlistCount', '1');
                         
                         // Go to success page
                         window.location.href = './success.html';
