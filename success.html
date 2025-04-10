@@ -137,6 +137,9 @@
         const db = firebase.firestore();
         
         document.addEventListener('DOMContentLoaded', function() {
+            // Clear localStorage on page load to ensure we always get a fresh count
+            localStorage.removeItem('waitlistCount');
+            console.log('Cleared localStorage waitlist count');
             // Get waitlist users from localStorage for the counter
             const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
             // Get counter element
@@ -146,8 +149,17 @@
             async function getAccurateCount() {
                 try {
                     const snapshot = await db.collection("waitlist").get();
+                    
+                    // Log all documents in the collection for debugging
+                    console.log("All documents in waitlist collection:");
+                    snapshot.forEach(doc => {
+                        console.log(doc.id, " => ", doc.data());
+                    });
+                    
                     const actualCount = snapshot.size;
                     console.log("Found actual count:", actualCount);
+                    console.log("Documents count:", snapshot.docs.length);
+                    console.log("Size property:", snapshot.size);
                     
                     // Update localStorage with proper count
                     localStorage.setItem('waitlistCount', actualCount);
@@ -162,17 +174,16 @@
             }
             
             function animateCounter(totalCount) {
-                // For first user, show exactly 1
-                totalCount = Math.max(totalCount, 1);
+                // Display exact count, don't force a minimum
                 
                 if (totalCount <= 1) {
-                    // Just display 1 for the first user without animation
-                    countElement.textContent = "1";
+                    // Just display exact count for the first user without animation
+                    countElement.textContent = totalCount.toString();
                     return;
                 }
                 
-                // Start from a smaller number for animation effect, but ensure at least 1
-                let currentCount = totalCount > 10 ? totalCount - 10 : 1;
+                // Start from a smaller number for animation effect
+                let currentCount = totalCount > 10 ? totalCount - 10 : 0;
                 
                 countElement.textContent = currentCount.toLocaleString();
                 

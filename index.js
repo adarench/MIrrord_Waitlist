@@ -17,8 +17,16 @@ function updateWaitlistCounter() {
             try {
                 const db = firebase.firestore();
                 db.collection("waitlist").get().then(snapshot => {
+                    // Log all documents in the collection for debugging
+                    console.log("All documents in waitlist collection:");
+                    snapshot.forEach(doc => {
+                        console.log(doc.id, " => ", doc.data());
+                    });
+                    
                     const actualCount = snapshot.size;
                     console.log("Found actual count in Firestore:", actualCount);
+                    console.log("Documents count:", snapshot.docs.length);
+                    console.log("Size property:", snapshot.size);
                     
                     // Update localStorage with proper count
                     localStorage.setItem('waitlistCount', actualCount);
@@ -52,17 +60,16 @@ function updateWaitlistCounter() {
     }
     
     function displayCounter(totalCount) {
-        // For first user or empty database, show exactly 1
-        totalCount = Math.max(totalCount, 1);
+        // Display exact count, don't force a minimum
         
         if (totalCount <= 1) {
-            // Just display 1 without animation
-            counterElement.textContent = "1";
+            // Just display exact count without animation
+            counterElement.textContent = totalCount.toString();
             return;
         }
         
         // Create count-up animation
-        let currentCount = totalCount > 10 ? totalCount - 10 : 1;
+        let currentCount = totalCount > 10 ? totalCount - 10 : 0;
         
         counterElement.textContent = currentCount.toLocaleString();
         
@@ -81,6 +88,10 @@ function updateWaitlistCounter() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Clear localStorage on page load to ensure we always get a fresh count
+    localStorage.removeItem('waitlistCount');
+    console.log('Cleared localStorage waitlist count');
+    
     initHeroAnimation();
     initDecorationAnimation();
     addTypewriterEffect();
