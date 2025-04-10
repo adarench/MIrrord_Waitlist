@@ -162,11 +162,17 @@
             }
             
             function animateCounter(totalCount) {
-                // Show at least 1 for the first user
+                // For first user, show exactly 1
                 totalCount = Math.max(totalCount, 1);
                 
-                // Start from a smaller number for animation effect
-                let currentCount = totalCount > 10 ? totalCount - 10 : 0;
+                if (totalCount <= 1) {
+                    // Just display 1 for the first user without animation
+                    countElement.textContent = "1";
+                    return;
+                }
+                
+                // Start from a smaller number for animation effect, but ensure at least 1
+                let currentCount = totalCount > 10 ? totalCount - 10 : 1;
                 
                 countElement.textContent = currentCount.toLocaleString();
                 

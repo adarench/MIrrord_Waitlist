@@ -11,52 +11,73 @@ function updateWaitlistCounter() {
     const counterElement = document.getElementById('waitlistCounter');
     if (!counterElement) return;
     
-    // Get waitlist count from localStorage
-    let storedCount = localStorage.getItem('waitlistCount');
-    const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
-    
-    // Default to local users if no stored count
-    let totalCount = storedCount ? parseInt(storedCount) : waitlistUsers.length;
-    
-    // Ensure we show at least 1 for better UX
-    totalCount = Math.max(totalCount, 1);
-    
-    // Create count-up animation
-    let currentCount = totalCount > 20 ? totalCount - 20 : 0;
-    
-    counterElement.textContent = currentCount.toLocaleString();
-    
-    const countInterval = setInterval(() => {
-        currentCount++;
-        counterElement.textContent = currentCount.toLocaleString();
-        
-        if (currentCount >= totalCount) {
-            clearInterval(countInterval);
-        }
-    }, 50);
-    
-    // Try to get accurate count from Firebase if available
-    if (typeof firebase !== 'undefined' && firebase.firestore) {
-        try {
-            const db = firebase.firestore();
-            db.collection("waitlist").get().then(snapshot => {
-                const actualCount = snapshot.size;
-                console.log("Found actual count:", actualCount);
-                
-                // Update localStorage with proper count
-                localStorage.setItem('waitlistCount', actualCount);
-                
-                // Only update the display if significantly different
-                if (Math.abs(actualCount - totalCount) > 2) {
-                    counterElement.textContent = actualCount.toLocaleString();
-                }
-            }).catch(error => {
-                console.error("Error getting count from Firebase:", error);
-            });
-        } catch (e) {
-            console.error("Error accessing Firebase:", e);
+    // Try to get actual firebase count first
+    function updateCountFromFirebase() {
+        if (typeof firebase !== 'undefined' && firebase.firestore) {
+            try {
+                const db = firebase.firestore();
+                db.collection("waitlist").get().then(snapshot => {
+                    const actualCount = snapshot.size;
+                    console.log("Found actual count in Firestore:", actualCount);
+                    
+                    // Update localStorage with proper count
+                    localStorage.setItem('waitlistCount', actualCount);
+                    
+                    // Update the display
+                    displayCounter(actualCount);
+                }).catch(error => {
+                    console.error("Error getting count from Firebase:", error);
+                    // Fall back to localStorage on error
+                    displayCountFromLocalStorage();
+                });
+            } catch (e) {
+                console.error("Error accessing Firebase:", e);
+                // Fall back to localStorage on error
+                displayCountFromLocalStorage();
+            }
+        } else {
+            // No Firebase available, use localStorage
+            displayCountFromLocalStorage();
         }
     }
+    
+    function displayCountFromLocalStorage() {
+        // Get waitlist count from localStorage
+        let storedCount = localStorage.getItem('waitlistCount');
+        const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
+        
+        // Default to local users if no stored count
+        let count = storedCount ? parseInt(storedCount) : waitlistUsers.length;
+        displayCounter(count);
+    }
+    
+    function displayCounter(totalCount) {
+        // For first user or empty database, show exactly 1
+        totalCount = Math.max(totalCount, 1);
+        
+        if (totalCount <= 1) {
+            // Just display 1 without animation
+            counterElement.textContent = "1";
+            return;
+        }
+        
+        // Create count-up animation
+        let currentCount = totalCount > 10 ? totalCount - 10 : 1;
+        
+        counterElement.textContent = currentCount.toLocaleString();
+        
+        const countInterval = setInterval(() => {
+            currentCount++;
+            counterElement.textContent = currentCount.toLocaleString();
+            
+            if (currentCount >= totalCount) {
+                clearInterval(countInterval);
+            }
+        }, 50);
+    }
+    
+    // Start by fetching the actual count
+    updateCountFromFirebase();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
