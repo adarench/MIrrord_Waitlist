@@ -250,10 +250,21 @@
         console.log('Cache busting timestamp:', cacheTime);
         
         // Initialize EmailJS with your User ID
-        // You'll need to sign up at https://www.emailjs.com/ and replace this with your actual User ID
         (function() {
-            // Initialize with the public key
-            emailjs.init('8yXpZG6iY5X07YGxP');
+            try {
+                // Initialize with the public key
+                emailjs.init('8yXpZG6iY5X07YGxP');
+                console.log("EmailJS initialized successfully");
+                
+                // Test that the library is accessible
+                if (typeof emailjs !== 'undefined' && typeof emailjs.send === 'function') {
+                    console.log("EmailJS library is properly loaded and functions are accessible");
+                } else {
+                    console.error("EmailJS is not properly loaded: emailjs =", typeof emailjs);
+                }
+            } catch (error) {
+                console.error("Error initializing EmailJS:", error);
+            }
         })();
         
         // Function to add user to waitlist
@@ -317,37 +328,47 @@
                     if (result.success) {
                         console.log("Successfully added to waitlist with ID: ", result.id);
                         
-                        // Send confirmation email
-                        try {
-                            // Define email template parameters
-                            const templateParams = {
-                                to_name: userData.name,
-                                to_email: userData.email,
-                                message: `Thanks for joining the Mirrord waitlist. We'll notify you when early access is available.`
-                            };
-                            
-                            // Send the email using EmailJS
-                            // Send email using the provided service and template IDs
-                            emailjs.send('service_uwps2rt', 'template_3hrpfwf', templateParams)
-                                .then(function(response) {
-                                    console.log('Email sent successfully:', response);
-                                }, function(error) {
-                                    console.error('Email sending failed:', error);
-                                });
-                        } catch (emailError) {
-                            console.error("Error sending confirmation email:", emailError);
-                            // Continue with form submission even if email fails
-                        }
+                        // Send confirmation email - with additional debugging
+                        console.log("Starting email sending process to:", userData.email);
                         
-                        // Store only the current user in localStorage
-                        const singleUserArray = [userData];
-                        localStorage.setItem('waitlistUsers', JSON.stringify(singleUserArray));
+                        // Define email template parameters
+                        const templateParams = {
+                            to_name: userData.name,
+                            to_email: userData.email,
+                            message: `Thanks for joining the Mirrord waitlist. We'll notify you when early access is available.`
+                        };
                         
-                        // Also store the actual count (should be 1 for a single user)
-                        localStorage.setItem('waitlistCount', '1');
+                        console.log("Email parameters:", JSON.stringify(templateParams));
                         
-                        // Go to success page with cache-busting parameter
-                        window.location.href = `./success.html?t=${new Date().getTime()}`;
+                        // Use promise-based approach for better error handling
+                        emailjs.send('service_uwps2rt', 'template_3hrpfwf', templateParams)
+                            .then(function(response) {
+                                console.log('EmailJS SUCCESS: Email sent successfully to ' + userData.email, response);
+                                localStorage.setItem('emailSent', 'true');
+                                
+                                // Store only the current user in localStorage
+                                const singleUserArray = [userData];
+                                localStorage.setItem('waitlistUsers', JSON.stringify(singleUserArray));
+                                
+                                // Also store the actual count (should be 1 for a single user)
+                                localStorage.setItem('waitlistCount', '1');
+                                
+                                // Go to success page with cache-busting parameter
+                                window.location.href = `./success.html?t=${new Date().getTime()}`;
+                            })
+                            .catch(function(error) {
+                                console.error('EmailJS ERROR: Email sending failed:', error);
+                                
+                                // Despite email error, continue with form submission
+                                localStorage.setItem('emailSent', 'false');
+                                localStorage.setItem('emailError', JSON.stringify(error));
+                                
+                                // Store user and redirect
+                                const singleUserArray = [userData];
+                                localStorage.setItem('waitlistUsers', JSON.stringify(singleUserArray));
+                                localStorage.setItem('waitlistCount', '1');
+                                window.location.href = `./success.html?t=${new Date().getTime()}&emailFailed=true`;
+                            });
                     } else {
                         console.error("Error in submission:", result.error);
                         alert('There was an error submitting your information. Please try again.');

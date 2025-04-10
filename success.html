@@ -107,7 +107,19 @@
             <div class="success-icon">✓</div>
             <h1>You're on the List!</h1>
             <p>Thanks for joining the Mirrord waitlist. We'll be in touch soon with early access details.</p>
-            <p>Check your inbox for a confirmation email.</p>
+            <p id="emailStatus">Check your inbox for a confirmation email.</p>
+            <script>
+                // Display email status
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('emailFailed')) {
+                    document.getElementById('emailStatus').innerHTML = 
+                        '<span style="color:#ef4444">There was an issue sending the confirmation email, but your signup was successful.</span>';
+                    console.log('Email error details:', localStorage.getItem('emailError'));
+                } else {
+                    const emailSent = localStorage.getItem('emailSent');
+                    console.log('Email sent status:', emailSent);
+                }
+            </script>
             
             <div class="counter">
                 You're joining <span class="count-number" id="waitlistCount">0</span> traders on our waitlist.
