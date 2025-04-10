@@ -1,0 +1,19 @@
+{
+  "name": "mirrord-waitlist",
+  "version": "1.0.0",
+  "description": "Mirrord waitlist landing page",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "parcel-bundler": "^1.12.5"
+  },
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "inter-ui": "^3.19.3"
+  }
+}
