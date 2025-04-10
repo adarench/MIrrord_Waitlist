@@ -340,6 +340,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+          apiKey: "AIzaSyBG4AM8qs0LhDP5AMxSHtaNjd-BOKTG9aM",
+          authDomain: "mirrordwaitlist.firebaseapp.com",
+          projectId: "mirrordwaitlist",
+          storageBucket: "mirrordwaitlist.firebasestorage.app",
+          messagingSenderId: "84273478294",
+          appId: "1:84273478294:web:731df65e9f48ecbc3660b7",
+          measurementId: "G-HJMRHDCVV6"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+    </script>
     <script>
         // Ensure GSAP plugins are registered immediately
         try {

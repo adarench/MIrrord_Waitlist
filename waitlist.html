@@ -238,14 +238,22 @@
         // Function to add user to waitlist
         async function addToWaitlist(userData) {
           try {
-            const docRef = await db.collection("waitlist").add({
+            console.log("Adding to waitlist:", userData);
+            
+            // Add timestamp to the data
+            const dataWithTimestamp = {
               ...userData,
-              timestamp: new Date()
-            });
+              timestamp: firebase.firestore.FieldValue.serverTimestamp() // Use server timestamp
+            };
+            
+            // Add to the "waitlist" collection
+            const docRef = await db.collection("waitlist").add(dataWithTimestamp);
+            console.log("Document written with ID: ", docRef.id);
+            
             return { success: true, id: docRef.id };
           } catch (error) {
             console.error("Error adding document:", error);
-            return { success: false, error };
+            return { success: false, error: error.message };
           }
         }
 
@@ -272,16 +280,26 @@
                 
                 try {
                     // Add to Firebase
-                    await addToWaitlist(userData);
+                    const result = await addToWaitlist(userData);
                     
-                    // Also store locally for our counter on success page
-                    const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
-                    waitlistUsers.push(userData);
-                    localStorage.setItem('waitlistUsers', JSON.stringify(waitlistUsers));
-                    
-                    // Go to success page
-                    window.location.href = './success.html';
+                    if (result.success) {
+                        console.log("Successfully added to waitlist with ID: ", result.id);
+                        
+                        // Also store locally for our counter on success page
+                        const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
+                        waitlistUsers.push(userData);
+                        localStorage.setItem('waitlistUsers', JSON.stringify(waitlistUsers));
+                        
+                        // Go to success page
+                        window.location.href = './success.html';
+                    } else {
+                        console.error("Error in submission:", result.error);
+                        alert('There was an error submitting your information. Please try again.');
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Join Waitlist';
+                    }
                 } catch (error) {
+                    console.error("Exception in form submission:", error);
                     alert('There was an error submitting your information. Please try again.');
                     submitButton.disabled = false;
                     submitButton.textContent = 'Join Waitlist';

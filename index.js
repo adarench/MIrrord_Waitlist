@@ -11,10 +11,15 @@ function updateWaitlistCounter() {
     const counterElement = document.getElementById('waitlistCounter');
     if (!counterElement) return;
     
-    // Get waitlist users from localStorage for the counter
+    // Get waitlist count from localStorage
+    let storedCount = localStorage.getItem('waitlistCount');
     const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
-    // Show the actual count (0) rather than a fake number
-    const totalCount = waitlistUsers.length;
+    
+    // Default to local users if no stored count
+    let totalCount = storedCount ? parseInt(storedCount) : waitlistUsers.length;
+    
+    // Ensure we show at least 1 for better UX
+    totalCount = Math.max(totalCount, 1);
     
     // Create count-up animation
     let currentCount = totalCount > 20 ? totalCount - 20 : 0;
@@ -29,6 +34,29 @@ function updateWaitlistCounter() {
             clearInterval(countInterval);
         }
     }, 50);
+    
+    // Try to get accurate count from Firebase if available
+    if (typeof firebase !== 'undefined' && firebase.firestore) {
+        try {
+            const db = firebase.firestore();
+            db.collection("waitlist").get().then(snapshot => {
+                const actualCount = snapshot.size;
+                console.log("Found actual count:", actualCount);
+                
+                // Update localStorage with proper count
+                localStorage.setItem('waitlistCount', actualCount);
+                
+                // Only update the display if significantly different
+                if (Math.abs(actualCount - totalCount) > 2) {
+                    counterElement.textContent = actualCount.toLocaleString();
+                }
+            }).catch(error => {
+                console.error("Error getting count from Firebase:", error);
+            });
+        } catch (e) {
+            console.error("Error accessing Firebase:", e);
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

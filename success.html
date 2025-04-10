@@ -118,34 +118,72 @@
         <div class="bg-glow"></div>
     </div>
     
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script>
+        // Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyBG4AM8qs0LhDP5AMxSHtaNjd-BOKTG9aM",
+          authDomain: "mirrordwaitlist.firebaseapp.com",
+          projectId: "mirrordwaitlist",
+          storageBucket: "mirrordwaitlist.firebasestorage.app",
+          messagingSenderId: "84273478294",
+          appId: "1:84273478294:web:731df65e9f48ecbc3660b7",
+          measurementId: "G-HJMRHDCVV6"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
         document.addEventListener('DOMContentLoaded', function() {
             // Get waitlist users from localStorage for the counter
             const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
-            // Show the actual count (0) rather than a fake number
-            const totalCount = waitlistUsers.length;
-            
             // Get counter element
             const countElement = document.getElementById('waitlistCount');
             
-            // Create count-up animation
-            let currentCount = totalCount > 20 ? totalCount - 20 : 0;
+            // Try to get accurate count from Firebase
+            async function getAccurateCount() {
+                try {
+                    const snapshot = await db.collection("waitlist").get();
+                    const actualCount = snapshot.size;
+                    console.log("Found actual count:", actualCount);
+                    
+                    // Update localStorage with proper count
+                    localStorage.setItem('waitlistCount', actualCount);
+                    
+                    // Update the counter with animation
+                    animateCounter(actualCount);
+                } catch (error) {
+                    console.error("Error getting waitlist count:", error);
+                    // Fall back to local count
+                    animateCounter(waitlistUsers.length);
+                }
+            }
             
-            countElement.textContent = currentCount.toLocaleString();
-            
-            const countInterval = setInterval(() => {
-                currentCount++;
+            function animateCounter(totalCount) {
+                // Show at least 1 for the first user
+                totalCount = Math.max(totalCount, 1);
+                
+                // Start from a smaller number for animation effect
+                let currentCount = totalCount > 10 ? totalCount - 10 : 0;
+                
                 countElement.textContent = currentCount.toLocaleString();
                 
-                if (currentCount >= totalCount) {
-                    clearInterval(countInterval);
-                }
-            }, 50);
+                const countInterval = setInterval(() => {
+                    currentCount++;
+                    countElement.textContent = currentCount.toLocaleString();
+                    
+                    if (currentCount >= totalCount) {
+                        clearInterval(countInterval);
+                    }
+                }, 50);
+            }
             
-            // Auto redirect after 5 seconds
-            setTimeout(() => {
-                window.location.href = './index.html';
-            }, 5000);
+            // Call the function to get accurate count
+            getAccurateCount();
+            
+            // Let user decide when to return home, don't auto-redirect
         });
     </script>
 </body>
