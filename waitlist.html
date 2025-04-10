@@ -222,6 +222,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
         // Firebase configuration
         const firebaseConfig = {
@@ -247,6 +248,13 @@
         // Add a timestamp parameter to force cache refresh
         const cacheTime = new Date().getTime();
         console.log('Cache busting timestamp:', cacheTime);
+        
+        // Initialize EmailJS with your User ID
+        // You'll need to sign up at https://www.emailjs.com/ and replace this with your actual User ID
+        (function() {
+            // Replace 'YOUR_USER_ID' with your actual EmailJS user ID
+            emailjs.init('YOUR_USER_ID');
+        })();
         
         // Function to add user to waitlist
         async function addToWaitlist(userData) {
@@ -308,6 +316,28 @@
                     
                     if (result.success) {
                         console.log("Successfully added to waitlist with ID: ", result.id);
+                        
+                        // Send confirmation email
+                        try {
+                            // Define email template parameters
+                            const templateParams = {
+                                to_name: userData.name,
+                                to_email: userData.email,
+                                message: `Thanks for joining the Mirrord waitlist! We'll notify you when early access is available.`
+                            };
+                            
+                            // Send the email using EmailJS
+                            // Replace 'YOUR_SERVICE_ID' and 'YOUR_TEMPLATE_ID' with your actual values from EmailJS
+                            emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
+                                .then(function(response) {
+                                    console.log('Email sent successfully:', response);
+                                }, function(error) {
+                                    console.error('Email sending failed:', error);
+                                });
+                        } catch (emailError) {
+                            console.error("Error sending confirmation email:", emailError);
+                            // Continue with form submission even if email fails
+                        }
                         
                         // Store only the current user in localStorage
                         const singleUserArray = [userData];
