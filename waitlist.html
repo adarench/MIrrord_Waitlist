@@ -8,6 +8,8 @@
     <meta http-equiv="Expires" content="0">
     <title>Join Mirrord Waitlist</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Load EmailJS early in the document -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         .waitlist-form-container {
             min-height: 100vh;
@@ -203,10 +205,87 @@
                 
                 <button type="submit" class="submit-btn">Join Waitlist</button>
                 
+                <!-- Test EmailJS button -->
+                <button type="button" id="testEmailBtn" style="margin-top: 10px; background-color: #333; color: white; padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer;">
+                    Test Email Directly
+                </button>
+                <div id="emailTestResult" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+                
                 <div class="form-footer">
-                    <p>Already on the waitlist? <a href="./index.html">Back to home</a></p>
+                    <p>Already on the waitlist? <a href="./index">Back to Home</a></p>
                 </div>
             </form>
+            
+            <script>
+                // Add direct test for EmailJS
+                document.getElementById('testEmailBtn').addEventListener('click', function() {
+                    const nameInput = document.getElementById('name');
+                    const emailInput = document.getElementById('email');
+                    const resultDiv = document.getElementById('emailTestResult');
+                    
+                    if (!nameInput.value || !emailInput.value) {
+                        resultDiv.style.display = 'block';
+                        resultDiv.style.backgroundColor = '#ef4444';
+                        resultDiv.textContent = 'Please fill in name and email fields first';
+                        return;
+                    }
+                    
+                    resultDiv.style.display = 'block';
+                    resultDiv.style.backgroundColor = '#1976d2';
+                    resultDiv.textContent = 'Sending test email...';
+                    
+                    // Create simple test parameters
+                    const testParams = {
+                        to_name: nameInput.value,
+                        to_email: emailInput.value,
+                        message: 'This is a direct test from the waitlist form.'
+                    };
+                    
+                    console.log('TEST EMAIL - Sending with params:', JSON.stringify(testParams));
+                    console.log('TEST EMAIL - Using service ID:', 'service_uwps2rt');
+                    console.log('TEST EMAIL - Using template ID:', 'template_3hrpfwf');
+                    
+                    // Function to attempt sending test email with retries
+                    function attemptTestEmailSend(retries = 2) {
+                        console.log(`Test email send attempt (${3-retries} of 3)`);
+                        
+                        // Ensure EmailJS is initialized before sending
+                        if (typeof emailjs !== 'undefined' && typeof emailjs.send === 'function') {
+                            // Send direct test email
+                            emailjs.send('service_uwps2rt', 'template_3hrpfwf', testParams)
+                                .then(function(response) {
+                                    console.log('TEST EMAIL SUCCESS:', response);
+                                    resultDiv.style.backgroundColor = '#10b981';
+                                    resultDiv.textContent = 'Test email sent successfully! Check your inbox.';
+                                })
+                                .catch(function(error) {
+                                    console.error('TEST EMAIL ERROR:', error);
+                                    
+                                    if (retries > 0) {
+                                        resultDiv.style.backgroundColor = '#ff9800';
+                                        resultDiv.textContent = `Attempt failed. Retrying... (${retries} attempts left)`;
+                                        console.log(`Retrying test email send... (${retries} attempts left)`);
+                                        
+                                        // Wait a bit before retrying
+                                        setTimeout(() => attemptTestEmailSend(retries - 1), 1500);
+                                    } else {
+                                        console.error('All test email send attempts failed');
+                                        resultDiv.style.backgroundColor = '#ef4444';
+                                        resultDiv.textContent = 'Error sending test email after 3 attempts: ' + 
+                                            (error.text || JSON.stringify(error));
+                                    }
+                                });
+                        } else {
+                            console.error('EmailJS is not properly loaded for test');
+                            resultDiv.style.backgroundColor = '#ef4444';
+                            resultDiv.textContent = 'EmailJS library not properly loaded. Try refreshing the page.';
+                        }
+                    }
+                    
+                    // Start the test email sending process
+                    attemptTestEmailSend();
+                });
+            </script>
         </div>
         
         <div class="waitlist-form success-message" id="successMessage">
@@ -214,7 +293,7 @@
             <h2>You're on the List!</h2>
             <p>Thanks for joining the Mirrord waitlist. We'll be in touch soon with early access details.</p>
             <p>Check your inbox for a confirmation email.</p>
-            <a href="./index.html" class="btn btn-primary">Back to Home</a>
+            <a href="./index" class="btn btn-primary">Back to Home</a>
         </div>
         
         <div class="bg-glow"></div>
@@ -222,7 +301,8 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- EmailJS is also loaded in the head for earlier availability -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js" integrity="sha384-j1Ma3ClXMhIqKxLQNWp6tZi64DZyJFDXH/bbu2Mp+5E+KKpIAUgZHfbby7g8B4qA" crossorigin="anonymous"></script>
     <script>
         // Firebase configuration
         const firebaseConfig = {
@@ -252,16 +332,27 @@
         // Initialize EmailJS with your User ID
         (function() {
             try {
-                // Initialize with the public key
-                emailjs.init('8yXpZG6iY5X07YGxP');
-                console.log("EmailJS initialized successfully");
-                
-                // Test that the library is accessible
-                if (typeof emailjs !== 'undefined' && typeof emailjs.send === 'function') {
-                    console.log("EmailJS library is properly loaded and functions are accessible");
-                } else {
-                    console.error("EmailJS is not properly loaded: emailjs =", typeof emailjs);
-                }
+                // Delay initialization to ensure library is fully loaded
+                setTimeout(function() {
+                    // Initialize with the public key
+                    emailjs.init('8yXpZG6iY5X07YGxP');
+                    console.log("EmailJS initialized successfully");
+                    
+                    // Test that the library is accessible
+                    if (typeof emailjs !== 'undefined' && typeof emailjs.send === 'function') {
+                        console.log("EmailJS library is properly loaded and functions are accessible");
+                        // Validate credentials with a simple test
+                        emailjs.send('service_uwps2rt', 'template_3hrpfwf', {test: 'init_test'})
+                            .then(function(response) {
+                                console.log('EmailJS INIT TEST SUCCESS:', response);
+                            })
+                            .catch(function(error) {
+                                console.error('EmailJS INIT TEST ERROR:', error);
+                            });
+                    } else {
+                        console.error("EmailJS is not properly loaded: emailjs =", typeof emailjs);
+                    }
+                }, 1000);
             } catch (error) {
                 console.error("Error initializing EmailJS:", error);
             }
@@ -340,35 +431,52 @@
                         
                         console.log("Email parameters:", JSON.stringify(templateParams));
                         
-                        // Use promise-based approach for better error handling
-                        emailjs.send('service_uwps2rt', 'template_3hrpfwf', templateParams)
-                            .then(function(response) {
-                                console.log('EmailJS SUCCESS: Email sent successfully to ' + userData.email, response);
-                                localStorage.setItem('emailSent', 'true');
-                                
-                                // Store only the current user in localStorage
-                                const singleUserArray = [userData];
-                                localStorage.setItem('waitlistUsers', JSON.stringify(singleUserArray));
-                                
-                                // Also store the actual count (should be 1 for a single user)
-                                localStorage.setItem('waitlistCount', '1');
-                                
-                                // Go to success page with cache-busting parameter
-                                window.location.href = `./success.html?t=${new Date().getTime()}`;
-                            })
-                            .catch(function(error) {
-                                console.error('EmailJS ERROR: Email sending failed:', error);
-                                
-                                // Despite email error, continue with form submission
-                                localStorage.setItem('emailSent', 'false');
-                                localStorage.setItem('emailError', JSON.stringify(error));
-                                
-                                // Store user and redirect
-                                const singleUserArray = [userData];
-                                localStorage.setItem('waitlistUsers', JSON.stringify(singleUserArray));
-                                localStorage.setItem('waitlistCount', '1');
-                                window.location.href = `./success.html?t=${new Date().getTime()}&emailFailed=true`;
-                            });
+                        // Use promise-based approach with retry mechanism
+                        console.log("Attempting to send email with params:", JSON.stringify(templateParams));
+                        
+                        // Function to attempt sending email with retries
+                        function attemptEmailSend(retries = 2) {
+                            console.log(`Email send attempt (${3-retries} of 3)`);
+                            
+                            emailjs.send('service_uwps2rt', 'template_3hrpfwf', templateParams)
+                                .then(function(response) {
+                                    console.log('EmailJS SUCCESS: Email sent successfully to ' + userData.email, response);
+                                    localStorage.setItem('emailSent', 'true');
+                                    
+                                    // Store only the current user in localStorage
+                                    const singleUserArray = [userData];
+                                    localStorage.setItem('waitlistUsers', JSON.stringify(singleUserArray));
+                                    
+                                    // Also store the actual count (should be 1 for a single user)
+                                    localStorage.setItem('waitlistCount', '1');
+                                    
+                                    // Go to success page with cache-busting parameter
+                                    window.location.href = `./success?t=${new Date().getTime()}`;
+                                })
+                                .catch(function(error) {
+                                    console.error('EmailJS ERROR: Email sending failed:', error);
+                                    
+                                    if (retries > 0) {
+                                        console.log(`Retrying email send... (${retries} attempts left)`);
+                                        // Wait a bit before retrying
+                                        setTimeout(() => attemptEmailSend(retries - 1), 1500);
+                                    } else {
+                                        console.error('All email send attempts failed');
+                                        // Despite email error, continue with form submission
+                                        localStorage.setItem('emailSent', 'false');
+                                        localStorage.setItem('emailError', JSON.stringify(error));
+                                        
+                                        // Store user and redirect
+                                        const singleUserArray = [userData];
+                                        localStorage.setItem('waitlistUsers', JSON.stringify(singleUserArray));
+                                        localStorage.setItem('waitlistCount', '1');
+                                        window.location.href = `./success?t=${new Date().getTime()}&emailFailed=true`;
+                                    }
+                                });
+                        }
+                        
+                        // Start the email sending process with retries
+                        attemptEmailSend();
                     } else {
                         console.error("Error in submission:", result.error);
                         alert('There was an error submitting your information. Please try again.');

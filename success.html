@@ -8,6 +8,8 @@
     <meta http-equiv="Expires" content="0">
     <title>Success - Mirrord Waitlist</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Load EmailJS early for retry functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         .success-container {
             min-height: 100vh;
@@ -115,9 +117,83 @@
                     document.getElementById('emailStatus').innerHTML = 
                         '<span style="color:#ef4444">There was an issue sending the confirmation email, but your signup was successful.</span>';
                     console.log('Email error details:', localStorage.getItem('emailError'));
+                    // Add retry link
+                    document.getElementById('emailStatus').innerHTML += 
+                        '<br><span style="font-size: 14px; margin-top: 8px; display: inline-block">' +
+                        '<a href="#" id="retryEmail" style="color:#1976d2; text-decoration: underline;">Retry sending confirmation email</a></span>';
+                        
+                    // Add retry functionality
+                    setTimeout(() => {
+                        const retryLink = document.getElementById('retryEmail');
+                        if (retryLink) {
+                            retryLink.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
+                                if (waitlistUsers.length > 0) {
+                                    const user = waitlistUsers[0];
+                                    document.getElementById('emailStatus').innerHTML = '<span style="color:#1976d2">Attempting to resend confirmation email...</span>';
+                                    
+                                    // Load EmailJS if not already loaded
+                                    if (typeof emailjs === 'undefined') {
+                                        const script = document.createElement('script');
+                                        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+                                        script.onload = function() {
+                                            retryEmailSend(user);
+                                        };
+                                        document.head.appendChild(script);
+                                    } else {
+                                        retryEmailSend(user);
+                                    }
+                                } else {
+                                    document.getElementById('emailStatus').innerHTML = 
+                                        '<span style="color:#ef4444">Could not find your information to retry. Please sign up again.</span>';
+                                }
+                            });
+                        }
+                    }, 500);
+                    
+                    // Function to retry sending email
+                    function retryEmailSend(user) {
+                        try {
+                            // Initialize EmailJS
+                            emailjs.init('8yXpZG6iY5X07YGxP');
+                            
+                            // Create parameters
+                            const templateParams = {
+                                to_name: user.name,
+                                to_email: user.email,
+                                message: `Thanks for joining the Mirrord waitlist. We'll notify you when early access is available.`
+                            };
+                            
+                            console.log("Retrying email with params:", JSON.stringify(templateParams));
+                            
+                            // Send email
+                            emailjs.send('service_uwps2rt', 'template_3hrpfwf', templateParams)
+                                .then(function(response) {
+                                    console.log('RETRY EMAIL SUCCESS:', response);
+                                    document.getElementById('emailStatus').innerHTML = 
+                                        '<span style="color:#10b981">Confirmation email sent successfully! Please check your inbox.</span>';
+                                    localStorage.setItem('emailSent', 'true');
+                                })
+                                .catch(function(error) {
+                                    console.error('RETRY EMAIL ERROR:', error);
+                                    document.getElementById('emailStatus').innerHTML = 
+                                        '<span style="color:#ef4444">Failed to send confirmation email. Please check your email address.</span>';
+                                });
+                        } catch (error) {
+                            console.error("Error in retry process:", error);
+                            document.getElementById('emailStatus').innerHTML = 
+                                '<span style="color:#ef4444">An error occurred while trying to send the confirmation email.</span>';
+                        }
+                    }
                 } else {
                     const emailSent = localStorage.getItem('emailSent');
                     console.log('Email sent status:', emailSent);
+                    
+                    if (emailSent === 'true') {
+                        document.getElementById('emailStatus').innerHTML = 
+                            '<span style="color:#10b981">A confirmation email has been sent to your inbox!</span>';
+                    }
                 }
             </script>
             
@@ -129,7 +205,7 @@
                 <a href="#" id="backHomeLink" class="btn btn-primary">Back to Home</a>
                 <script>
                     // Add cache-busting timestamp to home link
-                    document.getElementById('backHomeLink').href = `./index.html?t=${new Date().getTime()}`;
+                    document.getElementById('backHomeLink').href = `./index?t=${new Date().getTime()}`;
                 </script>
             </div>
         </div>

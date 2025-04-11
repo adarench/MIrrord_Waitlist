@@ -6,10 +6,23 @@
       "**/.*",
       "**/node_modules/**"
     ],
-    "rewrites": [
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "redirects": [
       {
-        "source": "**",
-        "destination": "/index.html"
+        "source": "/index.html",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/waitlist.html",
+        "destination": "/waitlist",
+        "type": 301
+      },
+      {
+        "source": "/success.html",
+        "destination": "/success",
+        "type": 301
       }
     ]
   }
