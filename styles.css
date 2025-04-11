@@ -624,6 +624,11 @@ footer {
   position: relative;
 }
 
+.trader-avatar-info {
+  display: flex;
+  align-items: center;
+}
+
 .trader-card::before {
   content: '';
   position: absolute;
@@ -1421,7 +1426,40 @@ footer {
   }
   
   .trader-card {
-    min-width: 260px;
+    min-width: 300px;
+    padding: var(--spacing-3) var(--spacing-4);
+    margin-right: var(--spacing-2);
+  }
+  
+  .trader-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+    min-height: 110px;
+  }
+  
+  .trader-avatar-info {
+    display: flex;
+    width: 100%;
+  }
+  
+  .trader-info {
+    width: 100%;
+  }
+  
+  .trader-follow-btn {
+    font-size: 12px;
+    padding: var(--spacing-1) var(--spacing-2);
+    margin-left: 58px; /* Width of avatar (50px) + margin-right (8px) */
+  }
+  
+  .trader-card::before {
+    width: 100%;
+  }
+  
+  .trader-card.active::before {
+    width: 100%;
   }
   
   .feature-cards-wrapper {
