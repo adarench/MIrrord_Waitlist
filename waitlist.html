@@ -205,96 +205,17 @@
                 
                 <button type="submit" class="submit-btn">Join Waitlist</button>
                 
-                <!-- Test EmailJS button -->
-                <button type="button" id="testEmailBtn" style="margin-top: 10px; background-color: #333; color: white; padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer;">
-                    Test Email Directly
-                </button>
-                <div id="emailTestResult" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
-                
                 <div class="form-footer">
                     <p>Already on the waitlist? <a href="./index">Back to Home</a></p>
                 </div>
             </form>
             
             <script>
-                // Add direct test for EmailJS
-                document.getElementById('testEmailBtn').addEventListener('click', function() {
-                    const nameInput = document.getElementById('name');
-                    const emailInput = document.getElementById('email');
-                    const resultDiv = document.getElementById('emailTestResult');
-                    
-                    if (!nameInput.value || !emailInput.value) {
-                        resultDiv.style.display = 'block';
-                        resultDiv.style.backgroundColor = '#ef4444';
-                        resultDiv.textContent = 'Please fill in name and email fields first';
-                        return;
-                    }
-                    
-                    resultDiv.style.display = 'block';
-                    resultDiv.style.backgroundColor = '#1976d2';
-                    resultDiv.textContent = 'Sending test email...';
-                    
-                    // Create simple test parameters
-                    const testParams = {
-                        to_name: nameInput.value,
-                        to_email: emailInput.value,
-                        message: 'This is a direct test from the waitlist form.'
-                    };
-                    
-                    console.log('TEST EMAIL - Sending with params:', JSON.stringify(testParams));
-                    console.log('TEST EMAIL - Using service ID:', 'service_uwps2rt');
-                    console.log('TEST EMAIL - Using template ID:', 'template_3hrpfwf');
-                    
-                    // Function to attempt sending test email with retries
-                    function attemptTestEmailSend(retries = 2) {
-                        console.log(`Test email send attempt (${3-retries} of 3)`);
-                        
-                        // Ensure EmailJS is initialized before sending
-                        if (typeof emailjs !== 'undefined' && typeof emailjs.send === 'function') {
-                            // Send direct test email
-                            emailjs.send('service_uwps2rt', 'template_3hrpfwf', testParams)
-                                .then(function(response) {
-                                    console.log('TEST EMAIL SUCCESS:', response);
-                                    resultDiv.style.backgroundColor = '#10b981';
-                                    resultDiv.textContent = 'Test email sent successfully! Check your inbox.';
-                                })
-                                .catch(function(error) {
-                                    console.error('TEST EMAIL ERROR:', error);
-                                    
-                                    if (retries > 0) {
-                                        resultDiv.style.backgroundColor = '#ff9800';
-                                        resultDiv.textContent = `Attempt failed. Retrying... (${retries} attempts left)`;
-                                        console.log(`Retrying test email send... (${retries} attempts left)`);
-                                        
-                                        // Wait a bit before retrying
-                                        setTimeout(() => attemptTestEmailSend(retries - 1), 1500);
-                                    } else {
-                                        console.error('All test email send attempts failed');
-                                        resultDiv.style.backgroundColor = '#ef4444';
-                                        resultDiv.textContent = 'Error sending test email after 3 attempts: ' + 
-                                            (error.text || JSON.stringify(error));
-                                    }
-                                });
-                        } else {
-                            console.error('EmailJS is not properly loaded for test');
-                            resultDiv.style.backgroundColor = '#ef4444';
-                            resultDiv.textContent = 'EmailJS library not properly loaded. Try refreshing the page.';
-                        }
-                    }
-                    
-                    // Start the test email sending process
-                    attemptTestEmailSend();
-                });
+                // No test email button script needed
             </script>
         </div>
         
-        <div class="waitlist-form success-message" id="successMessage">
-            <div class="icon">✓</div>
-            <h2>You're on the List!</h2>
-            <p>Thanks for joining the Mirrord waitlist. We'll be in touch soon with early access details.</p>
-            <p>Check your inbox for a confirmation email.</p>
-            <a href="./index" class="btn btn-primary">Back to Home</a>
-        </div>
+        <!-- Success message removed from here as we'll use the success.html page instead -->
         
         <div class="bg-glow"></div>
     </div>
@@ -321,8 +242,15 @@
         // Disable Firestore caching
         const db = firebase.firestore();
         db.settings({
-            cacheSizeBytes: 0,  // Set cache size to 0
+            cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,  // Allow caching
             ignoreUndefinedProperties: true
+        });
+        
+        // Force refresh Firestore cache
+        db.clearPersistence().then(() => {
+            console.log("Firestore persistence cleared successfully");
+        }).catch((error) => {
+            console.error("Error clearing Firestore persistence:", error);
         });
         
         // Add a timestamp parameter to force cache refresh
@@ -380,9 +308,18 @@
               timestamp: firebase.firestore.FieldValue.serverTimestamp() // Use server timestamp
             };
             
+            console.log("Adding document with data:", JSON.stringify(dataWithTimestamp));
+            
             // Add to the "waitlist" collection
             const docRef = await db.collection("waitlist").add(dataWithTimestamp);
             console.log("Document written with ID: ", docRef.id);
+            
+            // Verify the document was added by fetching it
+            const docSnapshot = await db.collection("waitlist").doc(docRef.id).get();
+            console.log("Verification - Document exists:", docSnapshot.exists);
+            if (docSnapshot.exists) {
+              console.log("Verification - Document data:", docSnapshot.data());
+            }
             
             return { success: true, id: docRef.id };
           } catch (error) {
@@ -447,11 +384,25 @@
                                     const singleUserArray = [userData];
                                     localStorage.setItem('waitlistUsers', JSON.stringify(singleUserArray));
                                     
-                                    // Also store the actual count (should be 1 for a single user)
-                                    localStorage.setItem('waitlistCount', '1');
-                                    
-                                    // Go to success page with cache-busting parameter
-                                    window.location.href = `./success?t=${new Date().getTime()}`;
+                                    // Get current waitlist count from Firestore to pass to success page
+                                    db.collection("waitlist").get({ source: "server" })
+                                        .then(snapshot => {
+                                            const actualCount = snapshot.size;
+                                            // Store the count minus 1 (to show count before the current user)
+                                            const previousCount = Math.max(0, actualCount - 1);
+                                            localStorage.setItem('waitlistCount', previousCount.toString());
+                                            console.log("Set waitlist count to:", previousCount);
+                                            
+                                            // Only redirect after we have the count
+                                            window.location.href = `./success?t=${new Date().getTime()}&count=${previousCount}`;
+                                        })
+                                        .catch(error => {
+                                            console.error("Error getting waitlist count:", error);
+                                            localStorage.setItem('waitlistCount', '0');
+                                            
+                                            // Redirect even if there's an error
+                                            window.location.href = `./success?t=${new Date().getTime()}&count=0`;
+                                        });
                                 })
                                 .catch(function(error) {
                                     console.error('EmailJS ERROR: Email sending failed:', error);
@@ -469,8 +420,26 @@
                                         // Store user and redirect
                                         const singleUserArray = [userData];
                                         localStorage.setItem('waitlistUsers', JSON.stringify(singleUserArray));
-                                        localStorage.setItem('waitlistCount', '1');
-                                        window.location.href = `./success?t=${new Date().getTime()}&emailFailed=true`;
+                                        
+                                        // Get current waitlist count from Firestore to pass to success page
+                                        db.collection("waitlist").get({ source: "server" })
+                                            .then(snapshot => {
+                                                const actualCount = snapshot.size;
+                                                // Store the count minus 1 (to show count before the current user)
+                                                const previousCount = Math.max(0, actualCount - 1);
+                                                localStorage.setItem('waitlistCount', previousCount.toString());
+                                                console.log("Set waitlist count to:", previousCount);
+                                                
+                                                // Only redirect after we have the count
+                                                window.location.href = `./success?t=${new Date().getTime()}&emailFailed=true&count=${previousCount}`;
+                                            })
+                                            .catch(error => {
+                                                console.error("Error getting waitlist count:", error);
+                                                localStorage.setItem('waitlistCount', '0');
+                                                
+                                                // Redirect even if there's an error
+                                                window.location.href = `./success?t=${new Date().getTime()}&emailFailed=true&count=0`;
+                                            });
                                     }
                                 });
                         }

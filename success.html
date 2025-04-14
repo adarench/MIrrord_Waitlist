@@ -60,17 +60,6 @@
             margin-top: var(--spacing-4);
         }
         
-        .counter {
-            margin-top: var(--spacing-6);
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-        
-        .count-number {
-            color: var(--primary-500);
-            font-weight: bold;
-        }
-        
         .bg-glow {
             position: absolute;
             top: -50%;
@@ -93,14 +82,7 @@
             }
         }
         
-        @keyframes countUp {
-            from {
-                content: "0";
-            }
-            to {
-                content: attr(data-count);
-            }
-        }
+        /* Counter animation removed */
     </style>
 </head>
 <body>
@@ -109,104 +91,11 @@
             <div class="success-icon">✓</div>
             <h1>You're on the List!</h1>
             <p>Thanks for joining the Mirrord waitlist. We'll be in touch soon with early access details.</p>
-            <p id="emailStatus">Check your inbox for a confirmation email.</p>
-            <script>
-                // Display email status
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.has('emailFailed')) {
-                    document.getElementById('emailStatus').innerHTML = 
-                        '<span style="color:#ef4444">There was an issue sending the confirmation email, but your signup was successful.</span>';
-                    console.log('Email error details:', localStorage.getItem('emailError'));
-                    // Add retry link
-                    document.getElementById('emailStatus').innerHTML += 
-                        '<br><span style="font-size: 14px; margin-top: 8px; display: inline-block">' +
-                        '<a href="#" id="retryEmail" style="color:#1976d2; text-decoration: underline;">Retry sending confirmation email</a></span>';
-                        
-                    // Add retry functionality
-                    setTimeout(() => {
-                        const retryLink = document.getElementById('retryEmail');
-                        if (retryLink) {
-                            retryLink.addEventListener('click', function(e) {
-                                e.preventDefault();
-                                const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
-                                if (waitlistUsers.length > 0) {
-                                    const user = waitlistUsers[0];
-                                    document.getElementById('emailStatus').innerHTML = '<span style="color:#1976d2">Attempting to resend confirmation email...</span>';
-                                    
-                                    // Load EmailJS if not already loaded
-                                    if (typeof emailjs === 'undefined') {
-                                        const script = document.createElement('script');
-                                        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-                                        script.onload = function() {
-                                            retryEmailSend(user);
-                                        };
-                                        document.head.appendChild(script);
-                                    } else {
-                                        retryEmailSend(user);
-                                    }
-                                } else {
-                                    document.getElementById('emailStatus').innerHTML = 
-                                        '<span style="color:#ef4444">Could not find your information to retry. Please sign up again.</span>';
-                                }
-                            });
-                        }
-                    }, 500);
-                    
-                    // Function to retry sending email
-                    function retryEmailSend(user) {
-                        try {
-                            // Initialize EmailJS
-                            emailjs.init('8yXpZG6iY5X07YGxP');
-                            
-                            // Create parameters
-                            const templateParams = {
-                                to_name: user.name,
-                                to_email: user.email,
-                                message: `Thanks for joining the Mirrord waitlist. We'll notify you when early access is available.`
-                            };
-                            
-                            console.log("Retrying email with params:", JSON.stringify(templateParams));
-                            
-                            // Send email
-                            emailjs.send('service_uwps2rt', 'template_3hrpfwf', templateParams)
-                                .then(function(response) {
-                                    console.log('RETRY EMAIL SUCCESS:', response);
-                                    document.getElementById('emailStatus').innerHTML = 
-                                        '<span style="color:#10b981">Confirmation email sent successfully! Please check your inbox.</span>';
-                                    localStorage.setItem('emailSent', 'true');
-                                })
-                                .catch(function(error) {
-                                    console.error('RETRY EMAIL ERROR:', error);
-                                    document.getElementById('emailStatus').innerHTML = 
-                                        '<span style="color:#ef4444">Failed to send confirmation email. Please check your email address.</span>';
-                                });
-                        } catch (error) {
-                            console.error("Error in retry process:", error);
-                            document.getElementById('emailStatus').innerHTML = 
-                                '<span style="color:#ef4444">An error occurred while trying to send the confirmation email.</span>';
-                        }
-                    }
-                } else {
-                    const emailSent = localStorage.getItem('emailSent');
-                    console.log('Email sent status:', emailSent);
-                    
-                    if (emailSent === 'true') {
-                        document.getElementById('emailStatus').innerHTML = 
-                            '<span style="color:#10b981">A confirmation email has been sent to your inbox!</span>';
-                    }
-                }
-            </script>
+            <!-- Email message removed as requested -->
             
-            <div class="counter">
-                You're joining <span class="count-number" id="waitlistCount">0</span> traders on our waitlist.
-            </div>
             
             <div class="back-home">
-                <a href="#" id="backHomeLink" class="btn btn-primary">Back to Home</a>
-                <script>
-                    // Add cache-busting timestamp to home link
-                    document.getElementById('backHomeLink').href = `./index?t=${new Date().getTime()}`;
-                </script>
+                <a href="https://mirrordwaitlist.web.app" class="btn btn-primary">Back to Home</a>
             </div>
         </div>
         
@@ -242,79 +131,12 @@
         console.log('Cache busting timestamp:', cacheTime);
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Get counter element first
-            const countElement = document.getElementById('waitlistCount');
-            
-            // Clear ALL localStorage related to waitlist to ensure we always get a fresh count
-            localStorage.removeItem('waitlistCount');
+            // Clean up localStorage
             localStorage.removeItem('waitlistUsers');
-            console.log('Cleared ALL localStorage waitlist data');
+            localStorage.removeItem('waitlistCount');
+            console.log('Cleared localStorage waitlist data');
             
-            // Set an initial counter value of 0 to override any cached content
-            if (countElement) {
-                countElement.textContent = '0';
-            }
-            
-            // Get waitlist users from localStorage for the counter (will be empty after clearing)
-            const waitlistUsers = JSON.parse(localStorage.getItem('waitlistUsers') || '[]');
-            
-            // Try to get accurate count from Firebase
-            async function getAccurateCount() {
-                try {
-                    // Force server fetch, bypass cache
-                    const snapshot = await db.collection("waitlist").get({ source: "server" });
-                    
-                    // Log all documents in the collection for debugging
-                    console.log("All documents in waitlist collection:");
-                    snapshot.forEach(doc => {
-                        console.log(doc.id, " => ", doc.data());
-                    });
-                    
-                    const actualCount = snapshot.size;
-                    console.log("Found actual count:", actualCount);
-                    console.log("Documents count:", snapshot.docs.length);
-                    console.log("Size property:", snapshot.size);
-                    
-                    // Update localStorage with proper count
-                    localStorage.setItem('waitlistCount', actualCount);
-                    
-                    // Update the counter with animation
-                    animateCounter(actualCount);
-                } catch (error) {
-                    console.error("Error getting waitlist count:", error);
-                    // Fall back to local count
-                    animateCounter(waitlistUsers.length);
-                }
-            }
-            
-            function animateCounter(totalCount) {
-                // Display exact count, don't force a minimum
-                
-                if (totalCount <= 1) {
-                    // Just display exact count for the first user without animation
-                    countElement.textContent = totalCount.toString();
-                    return;
-                }
-                
-                // Start from a smaller number for animation effect
-                let currentCount = totalCount > 10 ? totalCount - 10 : 0;
-                
-                countElement.textContent = currentCount.toLocaleString();
-                
-                const countInterval = setInterval(() => {
-                    currentCount++;
-                    countElement.textContent = currentCount.toLocaleString();
-                    
-                    if (currentCount >= totalCount) {
-                        clearInterval(countInterval);
-                    }
-                }, 50);
-            }
-            
-            // Call the function to get accurate count
-            getAccurateCount();
-            
-            // Let user decide when to return home, don't auto-redirect
+            // No counter functionality needed
         });
     </script>
 </body>
